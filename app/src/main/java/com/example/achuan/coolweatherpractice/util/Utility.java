@@ -1,11 +1,21 @@
 package com.example.achuan.coolweatherpractice.util;
 
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.text.TextUtils;
 
 import com.example.achuan.coolweatherpractice.db.CoolWeatherDB;
 import com.example.achuan.coolweatherpractice.model.City;
 import com.example.achuan.coolweatherpractice.model.County;
 import com.example.achuan.coolweatherpractice.model.Province;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 
 /**
  * Created by achuan on 16-8-24.
@@ -79,5 +89,49 @@ public class Utility {
         }
         return false;
     }
+    /**
+    *将服务器返回的所有天气信息存储到Sharedferences文件中
+    **/
+    public static void saveWeatherInfo(Context context, String cityName,
+                                       String weatherCode, String temp1, String temp2, String weatherDesp,
+                                       String publishTime) {
+        //设置当前时间显示的格式
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy年M月d日", Locale.CHINA);
+        SharedPreferences.Editor editor = PreferenceManager
+                .getDefaultSharedPreferences(context)
+                .edit();//通过edit()方法获取SharedPreferences.Editor对象
+        //添加数据
+        editor.putBoolean("city_selected", true);//标志位,记录当前是否已经选择过城市了
+        editor.putString("city_name", cityName);
+        editor.putString("weather_code", weatherCode);
+        editor.putString("temp1", temp1);
+        editor.putString("temp2", temp2);
+        editor.putString("weather_desp", weatherDesp);
+        editor.putString("publish_time", publishTime);
+        editor.putString("current_date", sdf.format(new Date()));//获得系统的时间
+        editor.commit();/*将添加的数据提交*/
+    }
+    /**
+     *解析服务器返回的JSON数据,并存储到本地
+     **/
+    public static void handleWeatherResponse(Context context, String response) {
+        try {
+            JSONObject jsonObject = new JSONObject(response);
+            //通过信息名称获取数据集对象
+            JSONObject weatherInfo = jsonObject.getJSONObject("weatherinfo");
+            //将数据集中的数据一一提取出来
+            String cityName = weatherInfo.getString("city");
+            String weatherCode = weatherInfo.getString("cityid");
+            String temp1 = weatherInfo.getString("temp1");
+            String temp2 = weatherInfo.getString("temp2");
+            String weatherDesp = weatherInfo.getString("weather");
+            String publishTime = weatherInfo.getString("ptime");
+            saveWeatherInfo(context, cityName, weatherCode, temp1, temp2,
+                    weatherDesp, publishTime);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
 
 }

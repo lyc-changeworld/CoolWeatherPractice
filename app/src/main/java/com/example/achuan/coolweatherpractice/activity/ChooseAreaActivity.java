@@ -2,7 +2,9 @@ package com.example.achuan.coolweatherpractice.activity;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
@@ -72,6 +74,16 @@ public class ChooseAreaActivity extends AppCompatActivity{
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        //先拿到本地存储文件操作实例
+        SharedPreferences preferences= PreferenceManager.getDefaultSharedPreferences(this);
+        //如果city_selected为true说明当前已经选择过城市了,可以直接跳转到天气信息显示的活动
+        if(preferences.getBoolean("city_selected",false))
+        {
+            Intent intent=new Intent(this,WeatherActivity.class);
+            startActivity(intent);
+            finish();
+            return;
+        }
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         if (getSupportActionBar() != null){
             getSupportActionBar().hide();
@@ -97,6 +109,14 @@ public class ChooseAreaActivity extends AppCompatActivity{
                      selectedCity=cityList.get(i);
                      //查询下一级别：县
                      queryCounties();
+                 }
+                else if(currentLevel==LEVEL_COUNTY)
+                 {
+                     String countyCode=countyList.get(i).getCountyCode();//拿到点击的县对应的县级代号
+                     Intent intent=new Intent(ChooseAreaActivity.this,WeatherActivity.class);
+                     intent.putExtra("county_code",countyCode);//将县级代号传递到天气信息显示的那个活动去
+                     startActivity(intent);//启动跳转
+                     finish();//结束当前活动
                  }
             }
         });
@@ -143,7 +163,6 @@ public class ChooseAreaActivity extends AppCompatActivity{
             queryFromServer(selectedProvince.getProvinceCode(), "city");
         }
     }
-
     /**
      * 查询选中市内所有的县，优先从数据库查询，如果没有查询到再去服务器上查询。
      */
@@ -175,9 +194,8 @@ public class ChooseAreaActivity extends AppCompatActivity{
         else//如果没有代号,那就查询所有省份的信息
         {
             address="http://www.weather.com.cn/data/list3/city.xml";
-
         }
-        //showProgressDialog();//查询的时候显示加载进度
+        showProgressDialog();//查询的时候显示加载进度
         //启动网络请求,获得返回的数据
         HttpUtil.sendRequestWithHttpURLConnection(address, new HttpCallbackListener() {
             @Override
@@ -202,8 +220,7 @@ public class ChooseAreaActivity extends AppCompatActivity{
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            //closeProgressDialog();//关闭加载显示
-
+                            closeProgressDialog();//关闭加载显示
                             if("province".equals(type))
                             {
                                 queryProvinces();//查询后,更新列表显示
@@ -227,7 +244,7 @@ public class ChooseAreaActivity extends AppCompatActivity{
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        //closeProgressDialog();//关闭加载显示
+                        closeProgressDialog();//关闭加载显示
                         Toast.makeText(ChooseAreaActivity.this,
                                 "加载失败",
                                 Toast.LENGTH_SHORT)
@@ -273,5 +290,4 @@ public class ChooseAreaActivity extends AppCompatActivity{
             finish();
         }
     }
-
 }
