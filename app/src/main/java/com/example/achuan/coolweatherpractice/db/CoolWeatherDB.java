@@ -60,13 +60,14 @@ public class CoolWeatherDB {
         List<Province> list=new ArrayList<Province>();
         //创建游标实例,通过移动指针,将表格中的数据全部读取出来
         Cursor cursor=db.query("Province",null,null,null,null,null,null);
-        if(cursor.moveToNext())
+        if(cursor.moveToFirst())
         {
             do{
                 Province province=new Province();
                 province.setId(cursor.getInt(cursor.getColumnIndex("id")));//表格中的序号
                 province.setProvinceName(cursor.getString(cursor.getColumnIndex("province_name")));
                 province.setProvinceCode(cursor.getString(cursor.getColumnIndex("province_code")));
+                list.add(province);//将数据库中的数据存储到集合中
             }while (cursor.moveToNext());
         }
         return list;
