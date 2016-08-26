@@ -1,5 +1,6 @@
 package com.example.achuan.coolweatherpractice.activity;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -8,6 +9,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.view.View;
 import android.view.Window;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -45,6 +47,8 @@ public class WeatherActivity extends AppCompatActivity{
      * 用于显示当前日期
      */
     private TextView currentDateText;
+    //切换城市和更新天气按钮
+    private Button switchCity,refreshWeather;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -63,6 +67,33 @@ public class WeatherActivity extends AppCompatActivity{
         temp1Text = (TextView) findViewById(R.id.temp1);
         temp2Text = (TextView) findViewById(R.id.temp2);
         currentDateText = (TextView) findViewById(R.id.current_date);
+        /****切换城市和手动更新天气****/
+        switchCity= (Button) findViewById(R.id.switch_city);
+        refreshWeather= (Button) findViewById(R.id.refresh_weather);
+        /*为两个按钮设置监听事件*/
+        switchCity.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent=new Intent(WeatherActivity.this,ChooseAreaActivity.class);
+                intent.putExtra("from_weather_activity",true);//传递一个标志,代表是从天气界面到列表界面
+                startActivity(intent);
+                finish();
+            }
+        });
+        refreshWeather.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                publishText.setText("同步中...");
+                //先拿到本地存储文件操作实例
+                SharedPreferences preferences= PreferenceManager.getDefaultSharedPreferences(WeatherActivity.this);
+                String weatherCode=preferences.getString("weather_code","");//从本地文件中获取天气代号
+                if(!TextUtils.isEmpty(weatherCode))
+                {
+                    queryWeatherInfo(weatherCode);//通过天气代号刷新当前城市的天气信息并存储到本地,并显示出来
+                }
+            }
+        });
+
         //获取上个activity传递过来的城市代号
         String countyCode=getIntent().getStringExtra("county_code");
         if(!TextUtils.isEmpty(countyCode))
@@ -83,9 +114,10 @@ public class WeatherActivity extends AppCompatActivity{
      * 从SharedPreferences文件中读取存储的天气信息，并显示到界面上。
      */
     private void showWeather() {
+
         //拿到存储文件的实例
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        cityNameText.setText( prefs.getString("city_name", ""));
+        cityNameText.setText( prefs.getString("city_name",""));
         temp1Text.setText(prefs.getString("temp1", ""));
         temp2Text.setText(prefs.getString("temp2", ""));
         weatherDespText.setText(prefs.getString("weather_desp", ""));
@@ -104,7 +136,7 @@ public class WeatherActivity extends AppCompatActivity{
             public void onFinish(final String response) {
                 if("countyCode".equals(type))
                 {
-                    //如果传入的时县级代号
+                    //如果传入的时县级代号不为空
                     if(!TextUtils.isEmpty(response))
                     {
                         //从服务器返回的数据中解析出天气代号
@@ -115,18 +147,18 @@ public class WeatherActivity extends AppCompatActivity{
                             //查询天气代号对应的天气信息
                             queryWeatherInfo(weatherCode);
                         }
-                    }else if("weatherCode".equals(type))
-                    {
-                        //对服务返回的天气信息进行解析,并存储到本地文件中
-                        Utility.handleWeatherResponse(WeatherActivity.this,response);
-                        //从子线程返回到主线程进行UI刷新显示
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                showWeather();
-                            }
-                        });
                     }
+                }else if("weatherCode".equals(type))
+                {
+                    //对服务返回的天气信息进行解析,并存储到本地文件中
+                    Utility.handleWeatherResponse(WeatherActivity.this,response);
+                    //从子线程返回到主线程进行UI刷新显示
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            showWeather();
+                        }
+                    });
                 }
             }
             @Override
