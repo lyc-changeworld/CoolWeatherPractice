@@ -3,11 +3,12 @@
               android:orientation="vertical"
               android:layout_width="match_parent"
               android:layout_height="match_parent">
-<!--第一部分：城市名称-->
+<!--第一部分-->
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="50dp"
         android:background="#484e61">
+        <!--切换城市按钮-->
         <Button
             android:id="@+id/switch_city"
             android:layout_width="30dp"
@@ -15,6 +16,7 @@
             android:layout_centerVertical="true"
             android:layout_marginLeft="10dp"
             android:background="@drawable/home"/>
+        <!--城市名称-->
         <TextView
             android:id="@+id/city_name"
             android:layout_width="wrap_content"
@@ -22,6 +24,7 @@
             android:layout_centerInParent="true"
             android:textColor="#fff"
             android:textSize="24sp"/>
+        <!--更新天气按钮-->
         <Button
             android:id="@+id/refresh_weather"
             android:layout_width="30dp"

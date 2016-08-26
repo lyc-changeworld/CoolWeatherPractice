@@ -125,6 +125,8 @@ public class WeatherActivity extends AppCompatActivity{
         currentDateText.setText(prefs.getString("current_date", ""));
         weatherInfoLayout.setVisibility(View.VISIBLE);
         cityNameText.setVisibility(View.VISIBLE);
+        Intent intent=new Intent(this,AutoUpdateService.class);
+        startService(intent);//第一次显示天气消息后就开始启动这个服务,开始定时,到点了又接着重启服务,如此往复进行
     }
     /**
      * 根据传入的地址和类型去向服务器查询天气代号或者天气信息

@@ -76,12 +76,11 @@ public class ChooseAreaActivity extends AppCompatActivity{
         super.onCreate(savedInstanceState);
         //获取跳转前的那个活动传递过来的数据,这里传递过来一个标志位,代表从天气界面跳转过来的
         isFromWeatherActivity=getIntent().getBooleanExtra("from_weather_activity",false);
-
         //先拿到本地存储文件操作实例
         SharedPreferences preferences= PreferenceManager.getDefaultSharedPreferences(this);
         //如果city_selected为true说明当前已经选择过城市了
         //已经选择了城市并且不是从WeatherActivity跳转过来的,才可以直接跳转到天气信息显示的活动
-        if(preferences.getBoolean("city_selected",false)&&isFromWeatherActivity)
+        if(preferences.getBoolean("city_selected",false)&&!isFromWeatherActivity)
         {
             Intent intent=new Intent(this,WeatherActivity.class);
             startActivity(intent);
